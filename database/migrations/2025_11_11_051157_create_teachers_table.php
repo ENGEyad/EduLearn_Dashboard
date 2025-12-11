@@ -52,9 +52,12 @@ return new class extends Migration {
             $table->string('status')->default('Active');
             $table->unsignedInteger('students_count')->default(0);
 
-            // هنا التعديل 👇
+            // أداء وحضور من تطبيق الأستاذ
             $table->decimal('avg_student_score', 5, 2)->nullable(); // e.g. 90.50
             $table->decimal('attendance_rate', 5, 2)->nullable();   // e.g. 98.00
+
+            // مسار صورة الأستاذ (مثل الطلاب)
+            $table->string('photo_path')->nullable();
 
             $table->timestamps();
         });

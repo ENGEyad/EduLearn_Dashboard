@@ -1,11 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // routes من البليد
   const ROUTES = window.STUDENTS_ROUTES || {};
   const getListUrl = ROUTES.list || '/students/list';
   const getStoreUrl = ROUTES.store || '/students';
   const getUpdateUrl = ROUTES.update || ((id) => `/students/${id}`);
   const getDeleteUrl = ROUTES.destroy || ((id) => `/students/${id}`);
   const getImportUrl = ROUTES.import || '/students/import';
+
+  const STORAGE_BASE_URL = window.STORAGE_BASE_URL || '/storage';
 
   const studentsTableBody = document.querySelector('#studentsTable tbody');
   const studentSearch = document.getElementById('studentSearch');
@@ -43,8 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const guardianPhone = document.getElementById('guardianPhone');
   const guardianRelationOtherWrap = document.getElementById('guardianRelationOtherWrap');
   const guardianRelationOther = document.getElementById('guardianRelationOther');
-  const performanceAvg = document.getElementById('performanceAvg');
-  const attendanceRate = document.getElementById('attendanceRate');
+  const stPhoto = document.getElementById('stPhoto');
 
   // side panel
   const spAvatar = document.getElementById('studentAvatar');
@@ -62,11 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // delete modal
   const deleteModalEl = document.getElementById('deleteStudentModal');
   const confirmDeleteStudentBtn = document.getElementById('confirmDeleteStudentBtn');
-  const deleteModal = deleteModalEl ? new bootstrap.Modal(deleteModalEl) : null;
+  const deleteModal =
+    (deleteModalEl && window.bootstrap && bootstrap.Modal)
+      ? new bootstrap.Modal(deleteModalEl)
+      : null;
   let studentIdToDelete = null;
 
   let studentsData = [];
-  let currentMode = 'create'; // or 'edit'
+  let currentMode = 'create';
 
   function fullAddress(st) {
     const parts = [];
@@ -76,26 +79,36 @@ document.addEventListener('DOMContentLoaded', () => {
     return parts.length ? parts.join(' – ') : '--';
   }
 
+  function getInitials(name) {
+    if (!name) return 'ST';
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .map(p => p[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
   function clearForm() {
-    stDbId.value = '';
-    stFullName.value = '';
-    stGender.value = '';
-    stBirthdate.value = '';
-    stStatus.value = 'Active';
-    stEmail.value = '';
-    stGrade.value = '';
-    stClassSection.value = '';
+    if (stDbId) stDbId.value = '';
+    if (stFullName) stFullName.value = '';
+    if (stGender) stGender.value = '';
+    if (stBirthdate) stBirthdate.value = '';
+    if (stStatus) stStatus.value = 'Active';
+    if (stEmail) stEmail.value = '';
+    if (stGrade) stGrade.value = '';
+    if (stClassSection) stClassSection.value = '';
     if (stNotes) stNotes.value = '';
-    stGov.value = '';
-    stCity.value = '';
-    stStreet.value = '';
-    guardianName.value = '';
-    guardianRelation.value = '';
-    guardianPhone.value = '';
+    if (stGov) stGov.value = '';
+    if (stCity) stCity.value = '';
+    if (stStreet) stStreet.value = '';
+    if (guardianName) guardianName.value = '';
+    if (guardianRelation) guardianRelation.value = '';
+    if (guardianPhone) guardianPhone.value = '';
     if (guardianRelationOther) guardianRelationOther.value = '';
     if (guardianRelationOtherWrap) guardianRelationOtherWrap.classList.add('d-none');
-    performanceAvg.value = '';
-    attendanceRate.value = '';
+    if (stPhoto) stPhoto.value = '';
   }
 
   function showForm(mode = 'create') {
@@ -118,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function fillSidePanel(st) {
     if (!spName) return;
+
     spName.textContent = st.full_name || '--';
     spId.textContent = 'Academic ID: ' + (st.academic_id || '--');
     spDob.textContent = st.birthdate || '--';
@@ -130,8 +144,18 @@ document.addEventListener('DOMContentLoaded', () => {
     spGradeSection.textContent = (st.grade || '--') + (st.class_section ? ' / ' + st.class_section : '');
     spPerformance.textContent = st.performance_avg ? st.performance_avg + '%' : '--';
     spAttendance.textContent = st.attendance_rate ? st.attendance_rate + '%' : '--';
-    if (spAvatar && st.full_name) {
-      spAvatar.textContent = st.full_name.split(' ').map(p => p[0]).join('').slice(0, 2);
+
+    if (spAvatar) {
+      if (st.photo_path) {
+        const url = `${STORAGE_BASE_URL}/${st.photo_path}`;
+        spAvatar.style.backgroundImage = `url('${url}')`;
+        spAvatar.style.backgroundSize = 'cover';
+        spAvatar.style.backgroundPosition = 'center';
+        spAvatar.textContent = '';
+      } else {
+        spAvatar.style.backgroundImage = 'none';
+        spAvatar.textContent = getInitials(st.full_name);
+      }
     }
   }
 
@@ -139,12 +163,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!studentsTableBody) return;
     studentsTableBody.innerHTML = '';
 
+    const txtLower = filterText.toLowerCase();
+
     studentsData
       .filter(st => {
-        const txt = filterText.toLowerCase();
         const matchText =
-          st.full_name?.toLowerCase().includes(txt) ||
-          (st.academic_id && st.academic_id.toLowerCase().includes(txt));
+          (st.full_name && st.full_name.toLowerCase().includes(txtLower)) ||
+          (st.academic_id && st.academic_id.toLowerCase().includes(txtLower));
         const matchGrade = grade ? st.grade === grade : true;
         return matchText && matchGrade;
       })
@@ -180,20 +205,20 @@ document.addEventListener('DOMContentLoaded', () => {
         editBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           showForm('edit');
-          stDbId.value = st.id;
-          stFullName.value = st.full_name ?? '';
-          stGender.value = st.gender ?? '';
-          stBirthdate.value = st.birthdate ?? '';
-          stStatus.value = st.status ?? 'Active';
-          stEmail.value = st.email ?? '';
-          stGrade.value = st.grade ?? '';
-          stClassSection.value = st.class_section ?? '';
-          stGov.value = st.address_governorate ?? '';
-          stCity.value = st.address_city ?? '';
-          stStreet.value = st.address_street ?? '';
-          guardianName.value = st.guardian_name ?? '';
-          guardianRelation.value = st.guardian_relation ?? '';
-          guardianPhone.value = st.guardian_phone ?? '';
+          if (stDbId) stDbId.value = st.id;
+          if (stFullName) stFullName.value = st.full_name ?? '';
+          if (stGender) stGender.value = st.gender ?? '';
+          if (stBirthdate) stBirthdate.value = st.birthdate ?? '';
+          if (stStatus) stStatus.value = st.status ?? 'Active';
+          if (stEmail) stEmail.value = st.email ?? '';
+          if (stGrade) stGrade.value = st.grade ?? '';
+          if (stClassSection) stClassSection.value = st.class_section ?? '';
+          if (stGov) stGov.value = st.address_governorate ?? '';
+          if (stCity) stCity.value = st.address_city ?? '';
+          if (stStreet) stStreet.value = st.address_street ?? '';
+          if (guardianName) guardianName.value = st.guardian_name ?? '';
+          if (guardianRelation) guardianRelation.value = st.guardian_relation ?? '';
+          if (guardianPhone) guardianPhone.value = st.guardian_phone ?? '';
           if (stNotes) stNotes.value = st.notes ?? '';
           if (st.guardian_relation === 'other' && guardianRelationOtherWrap) {
             guardianRelationOtherWrap.classList.remove('d-none');
@@ -201,8 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
           } else if (guardianRelationOtherWrap) {
             guardianRelationOtherWrap.classList.add('d-none');
           }
-          performanceAvg.value = st.performance_avg ?? '';
-          attendanceRate.value = st.attendance_rate ?? '';
+          if (stPhoto) stPhoto.value = ''; // لا يمكن تعبئة ملف مسبقاً
         });
 
         deleteBtn.addEventListener('click', (e) => {
@@ -221,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         studentsData = data;
-        renderStudents(studentSearch.value, gradeFilter.value);
+        renderStudents(studentSearch ? studentSearch.value : '', gradeFilter ? gradeFilter.value : '');
         if (studentsData.length) fillSidePanel(studentsData[0]);
       })
       .catch(err => console.error(err));
@@ -230,13 +254,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (studentSearch) {
     studentSearch.addEventListener('input', e => {
-      renderStudents(e.target.value, gradeFilter.value);
+      renderStudents(e.target.value, gradeFilter ? gradeFilter.value : '');
     });
   }
 
   if (gradeFilter) {
     gradeFilter.addEventListener('change', () => {
-      renderStudents(studentSearch.value, gradeFilter.value);
+      renderStudents(studentSearch ? studentSearch.value : '', gradeFilter.value);
     });
   }
 
@@ -257,40 +281,42 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveStudentBtn = document.getElementById('saveStudentBtn');
   if (saveStudentBtn) {
     saveStudentBtn.addEventListener('click', () => {
-      const payload = {
-        full_name: stFullName.value,
-        gender: stGender.value,
-        birthdate: stBirthdate.value,
-        status: stStatus.value,
-        email: stEmail.value,
-        grade: stGrade.value,
-        class_section: stClassSection.value,
-        address_governorate: stGov.value,
-        address_city: stCity.value,
-        address_street: stStreet.value,
-        guardian_name: guardianName.value,
-        guardian_relation: guardianRelation.value,
-        guardian_relation_other: guardianRelationOther ? guardianRelationOther.value : '',
-        guardian_phone: guardianPhone.value,
-        performance_avg: performanceAvg.value,
-        attendance_rate: attendanceRate.value,
-        notes: stNotes ? stNotes.value : '',
-      };
+      const formData = new FormData();
+      formData.append('full_name', stFullName.value);
+      formData.append('gender', stGender.value);
+      formData.append('birthdate', stBirthdate.value);
+      formData.append('status', stStatus.value);
+      formData.append('email', stEmail.value);
+      formData.append('grade', stGrade.value);
+      formData.append('class_section', stClassSection.value);
+      formData.append('address_governorate', stGov.value);
+      formData.append('address_city', stCity.value);
+      formData.append('address_street', stStreet.value);
+      formData.append('guardian_name', guardianName.value);
+      formData.append('guardian_relation', guardianRelation.value);
+      formData.append('guardian_relation_other', guardianRelationOther ? guardianRelationOther.value : '');
+      formData.append('guardian_phone', guardianPhone.value);
+      formData.append('notes', stNotes ? stNotes.value : '');
+
+      if (stPhoto && stPhoto.files[0]) {
+        formData.append('photo', stPhoto.files[0]);
+      }
 
       let url = getStoreUrl;
       let method = 'POST';
+
       if (currentMode === 'edit' && stDbId.value) {
         url = typeof getUpdateUrl === 'function' ? getUpdateUrl(stDbId.value) : `/students/${stDbId.value}`;
-        method = 'PUT';
+        method = 'POST';
+        formData.append('_method', 'PUT');
       }
 
       fetch(url, {
         method: method,
         headers: {
-          'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrf
         },
-        body: JSON.stringify(payload)
+        body: formData
       })
       .then(async (res) => {
         if (!res.ok) {
@@ -334,11 +360,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (excelBtn && excelInput) {
+  if (excelBtn) {
     excelBtn.addEventListener('click', () => {
+      if (!excelInput) {
+        alert('File input for import not found (excelInput).');
+        return;
+      }
       excelInput.click();
     });
+  }
 
+  if (excelInput) {
     excelInput.addEventListener('change', () => {
       const file = excelInput.files[0];
       if (!file) return;
@@ -351,15 +383,37 @@ document.addEventListener('DOMContentLoaded', () => {
       fetch(url, {
         method: 'POST',
         headers: {
-          'X-CSRF-TOKEN': csrf
+          'X-CSRF-TOKEN': csrf,
+          'Accept': 'application/json'
         },
         body: formData
       })
-      .then(res => res.json())
-      .then(() => {
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          console.error('Import error:', text);
+          alert('Import failed. Status: ' + res.status);
+          throw new Error('Import failed');
+        }
+        try {
+          return await res.json();
+        } catch (e) {
+          return {};
+        }
+      })
+      .then((data) => {
+        if (data && data.message) {
+          alert(data.message);
+        } else {
+          alert('Students imported successfully.');
+        }
+        excelInput.value = '';
         fetchStudents();
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        alert('Unexpected error during import.');
+      });
     });
   }
 

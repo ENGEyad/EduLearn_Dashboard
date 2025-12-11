@@ -2,15 +2,13 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <div>
-    <h5 class="mb-0">Student Management</h5>
-    <small class="text-muted">Manage school students, status and profiles</small>
-  </div>
   <div class="d-flex gap-2">
     <button class="btn btn-outline-secondary" id="importExcelBtn">
-      <i class="bi bi-upload"></i> Import from Excel
+      <i class="bi bi-upload"></i> Import from CSV / Excel
     </button>
-    <input type="file" id="excelInput" class="d-none" accept=".xlsx,.xls,.csv" />
+    <input type="file" id="excelInput" class="d-none" accept=".csv,.xls,.xlsx" />
+  </div>
+  <div>
     <button class="btn btn-primary" id="openStudentFormBtn">
       <i class="bi bi-plus"></i> Add New Student
     </button>
@@ -157,7 +155,6 @@
       <select class="form-select" id="stStatus">
         <option>Active</option>
         <option>Suspended</option>
-        <option>Absent</option>
       </select>
     </div>
   </div>
@@ -183,6 +180,13 @@
     <div class="col-md-3">
       <label class="form-label">Notes</label>
       <input type="text" class="form-control" id="stNotes" placeholder="Optional">
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <label class="form-label">Student Photo</label>
+      <input type="file" class="form-control" id="stPhoto" accept="image/*">
     </div>
   </div>
 
@@ -225,18 +229,6 @@
     <div class="col-md-2 d-none" id="guardianRelationOtherWrap">
       <label class="form-label">Custom Relation</label>
       <input type="text" class="form-control" id="guardianRelationOther" placeholder="Specify">
-    </div>
-  </div>
-
-  <h6 class="mb-2 mt-4">Performance</h6>
-  <div class="row g-3 mb-3">
-    <div class="col-md-3">
-      <label class="form-label">Performance Avg. (%)</label>
-      <input type="number" min="0" max="100" class="form-control" id="performanceAvg" placeholder="e.g. 88">
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Attendance Rate (%)</label>
-      <input type="number" min="0" max="100" class="form-control" id="attendanceRate" placeholder="e.g. 95">
     </div>
   </div>
 
@@ -283,6 +275,8 @@
     },
     import: "{{ route('students.import') }}"
   };
+
+  window.STORAGE_BASE_URL = "{{ asset('storage') }}";
 </script>
 <script src="{{ asset('js/students.js') }}"></script>
 @endpush

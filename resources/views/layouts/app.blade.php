@@ -177,6 +177,18 @@
   .reports-skin .ach-icn{width:46px;height:46px;border-radius:50%;display:grid;place-items:center}
   .reports-skin .ach-icn.star{background:#fff7e6;color:#d97706}
   .reports-skin .ach-icn.book{background:#e6fffa;color:#059669}
+  .kv-row{
+  display:flex;
+  justify-content:space-between;
+  font-size:.82rem;
+  margin-bottom:.25rem;
+}
+.kv-label{
+  color:var(--muted);
+}
+.kv-value{
+  font-weight:500;
+}
 
   /* Badges + links */
   .reports-skin .badge-pass{background:#e8f7ee;color:#118d57;font-weight:700}
@@ -214,39 +226,47 @@
     </div>
 
     <nav class="nav flex-column gap-1" id="sidebarNav">
-      <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active' : '' }}">
-        <span class="icon-wrap"><i class="bi bi-grid-1x2"></i></span>
-        <span>Dashboard</span>
-      </a>
-      <a href="{{ url('/students') }}" class="{{ request()->is('students*') ? 'active' : '' }}">
-        <span class="icon-wrap"><i class="bi bi-person-lines-fill"></i></span>
-        <span>Students</span>
-      </a>
-      <a href="{{ url('/teachers') }}" class="{{ request()->is('teachers*') ? 'active' : '' }}">
-        <span class="icon-wrap"><i class="bi bi-person-badge"></i></span>
-        <span>Teachers</span>
-      </a>
-      <!-- <a href="{{ url('/classes') }}" class="{{ request()->is('classes*') ? 'active' : '' }}">
-        <span class="icon-wrap"><i class="bi bi-journal-text"></i></span>
-        <span>Classes</span>
-      </a> -->
-      <!-- <a href="{{ url('/subjects') }}" class="{{ request()->is('subjects*') ? 'active' : '' }}">
-        <span class="icon-wrap"><i class="bi bi-journal-bookmark"></i></span>
-        <span>Subjects</span>
-      </a> -->
-      <!-- <a href="{{ url('/attendance') }}" class="{{ request()->is('attendance*') ? 'active' : '' }}">
-        <span class="icon-wrap"><i class="bi bi-check2-circle"></i></span>
-        <span>Attendance</span>
-      </a> -->
-      <a href="{{ url('/reports') }}" class="{{ request()->is('reports*') ? 'active' : '' }}">
-        <span class="icon-wrap"><i class="bi bi-bar-chart"></i></span>
-        <span>Reports</span>
-      </a>
-      <a href="{{ url('/settings') }}" class="{{ request()->is('settings*') ? 'active' : '' }}">
-        <span class="icon-wrap"><i class="bi bi-gear"></i></span>
-        <span>Settings</span>
-      </a>
-    </nav>
+  <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active' : '' }}">
+    <span class="icon-wrap"><i class="bi bi-grid-1x2"></i></span>
+    <span>Dashboard</span>
+  </a>
+  <a href="{{ url('/students') }}" class="{{ request()->is('students*') ? 'active' : '' }}">
+    <span class="icon-wrap"><i class="bi bi-person-lines-fill"></i></span>
+    <span>Students</span>
+  </a>
+  <a href="{{ url('/teachers') }}" class="{{ request()->is('teachers*') ? 'active' : '' }}">
+    <span class="icon-wrap"><i class="bi bi-person-badge"></i></span>
+    <span>Teachers</span>
+  </a>
+  <a href="{{ url('/classes') }}" class="{{ request()->is('classes*') ? 'active' : '' }}">
+    <span class="icon-wrap"><i class="bi bi-journal-text"></i></span>
+    <span>Classes</span>
+  </a>
+  <a href="{{ url('/subjects') }}" class="{{ request()->is('subjects*') ? 'active' : '' }}">
+    <span class="icon-wrap"><i class="bi bi-journal-bookmark"></i></span>
+    <span>Subjects</span>
+  </a>
+
+
+<a href="{{ url('/class-subjects') }}" class="{{ request()->is('class-subjects*') ? 'active' : '' }}">
+    <span class="icon-wrap"><i class="bi bi-journal-check"></i></span>
+    <span>Class Subjects</span>
+  </a>
+  
+  <a href="{{ url('/assignments') }}" class="{{ request()->is('assignments*') ? 'active' : '' }}">
+    <span class="icon-wrap"><i class="bi bi-diagram-3"></i></span>
+    <span>Assignments</span>
+  </a>
+  <a href="{{ url('/reports') }}" class="{{ request()->is('reports*') ? 'active' : '' }}">
+    <span class="icon-wrap"><i class="bi bi-bar-chart"></i></span>
+    <span>Reports</span>
+  </a>
+  <a href="{{ url('/settings') }}" class="{{ request()->is('settings*') ? 'active' : '' }}">
+    <span class="icon-wrap"><i class="bi bi-gear"></i></span>
+    <span>Settings</span>
+  </a>
+</nav>
+
 
     <div class="bottom-links">
       <button class="w-100 d-flex align-items-center gap-2 border-0 bg-transparent text-start text-muted mb-2">
