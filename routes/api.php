@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\Api\StudentAuthController;
 use App\Http\Controllers\Api\TeacherAuthController;
 use App\Http\Controllers\Api\LessonController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Api\LessonMediaController;
 use App\Http\Controllers\Api\StudentLessonController;
 use App\Http\Controllers\Api\ClassModuleController;
 use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\BroadcastAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,13 +28,19 @@ Route::post('/student/auth', [StudentAuthController::class, 'auth']);
 // ✅ مسار الأستاذ
 Route::post('/teacher/auth', [TeacherAuthController::class, 'auth']);
 
+// ==================== Broadcasting Auth (Reverb / Pusher protocol) ====================
+// ✅ هذا هو المسار الذي Flutter يستخدمه: /api/broadcasting/auth
+Route::post('/broadcasting/auth', [BroadcastAuthController::class, 'auth']);
+
 // ==================== دروس الأستاذ ====================
 Route::post('/teacher/lessons/save', [LessonController::class, 'save']);
 Route::get('/teacher/lessons', [LessonController::class, 'index']);
+
+// ملاحظة: أبقيناه كما هو الآن
 Route::get('/teacher/lessons/{lesson}', [LessonController::class, 'show']);
 Route::delete('/teacher/lessons/{lesson}', [LessonController::class, 'destroy']);
-Route::post('/teacher/lessons/bulk-delete', [LessonController::class, 'bulkDelete']);
 
+Route::post('/teacher/lessons/bulk-delete', [LessonController::class, 'bulkDelete']);
 Route::post('/teacher/lessons/media', [LessonMediaController::class, 'store']);
 
 // ==================== موديولات الفصل (Class Modules) ====================
@@ -44,21 +52,27 @@ Route::get('/teacher/class-modules/{module}/lessons', [ClassModuleController::cl
 
 // ==================== دروس الطالب ====================
 Route::get('/student/lessons', [StudentLessonController::class, 'index']);
+Route::get('/student/lessons/{lesson}', [StudentLessonController::class, 'show']);
 Route::post('/student/lessons/update-status', [StudentLessonController::class, 'updateStatus']);
 
 // ==================== دردشة الأستاذ / الطالب ====================
+Route::prefix('chat')->group(function () {
 
-// فتح / إنشاء محادثة بين أستاذ وطالب
-Route::post('/chat/conversations/open', [ChatController::class, 'openConversation']);
+    // فتح / إنشاء محادثة بين أستاذ وطالب
+    Route::post('/conversations/open', [ChatController::class, 'openConversation']);
 
-// قائمة محادثات الأستاذ
-Route::get('/chat/conversations/teacher', [ChatController::class, 'teacherConversations']);
+    // قائمة محادثات الأستاذ
+    Route::get('/conversations/teacher', [ChatController::class, 'teacherConversations']);
 
-// قائمة محادثات الطالب
-Route::get('/chat/conversations/student', [ChatController::class, 'studentConversations']);
+    // قائمة محادثات الطالب
+    Route::get('/conversations/student', [ChatController::class, 'studentConversations']);
 
-// رسائل محادثة معيّنة
-Route::get('/chat/conversations/{conversation}/messages', [ChatController::class, 'messages']);
+    // رسائل محادثة معيّنة
+    Route::get('/conversations/{conversation}/messages', [ChatController::class, 'messages']);
 
-// إرسال رسالة في محادثة معيّنة
-Route::post('/chat/conversations/{conversation}/messages', [ChatController::class, 'sendMessage']);
+    // إرسال رسالة في محادثة معيّنة
+    Route::post('/conversations/{conversation}/messages', [ChatController::class, 'sendMessage']);
+
+    // ✅ (اختياري للتوافق) إذا كان عندك أي جزء قديم يستخدم /api/chat/broadcasting/auth
+    Route::post('/broadcasting/auth', [BroadcastAuthController::class, 'auth']);
+});
