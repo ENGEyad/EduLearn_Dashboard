@@ -2,8 +2,8 @@
 
 namespace App\Events;
 
-use App\Models\Message;
 use App\Models\Conversation;
+use App\Models\Message;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -24,7 +24,7 @@ class MessageSent implements ShouldBroadcastNow
     }
 
     /**
-     * اسم القناة التي يشترك فيها تطبيق Flutter:
+     * Flutter يشترك على:
      * conversation.{id}
      */
     public function broadcastOn(): Channel
@@ -33,7 +33,8 @@ class MessageSent implements ShouldBroadcastNow
     }
 
     /**
-     * اسم الحدث الذي يستمع له Flutter: message.sent
+     * Flutter يستمع لـ:
+     * message.sent
      */
     public function broadcastAs(): string
     {
@@ -41,32 +42,51 @@ class MessageSent implements ShouldBroadcastNow
     }
 
     /**
-     * البيانات المرسلة عبر الـ WebSocket
+     * Payload موحّد يخدم:
+     * - شاشة الشات (message)
+     * - شاشة قائمة المحادثات (conversation)
+     *
+     * ملاحظة مهمّة:
+     * - unread_count هنا "ليس طرف واحد" لأنه Event واحد يخدم الطرفين.
+     * - لذلك نرسل unread_for_teacher + unread_for_student + (اختياري) unread_count كأكبرهما للتوافق.
      */
     public function broadcastWith(): array
     {
-        return [
-            // نفس المفتاح القديم لو كنت تستعمله في أي مكان آخر
-            'conversation_id' => $this->conversation->id,
+        $sentAt = $this->message->sent_at
+            ? $this->message->sent_at->toIso8601String()
+            : optional($this->message->created_at)->toIso8601String();
 
-            // ما يتوقعه كود Flutter: payload['message'] ...
+        return [
+            // للمحافظة على التوافق
+            'conversation_id' => (int) $this->conversation->id,
+
+            // ما يتوقعه Flutter: payload['message']
             'message' => [
-                'id'              => $this->message->id,
-                'conversation_id' => $this->message->conversation_id,
-                'body'            => $this->message->body,
-                'sender_type'     => $this->message->sender_type,
-                'sender_id'       => $this->message->sender_id,
-                'sent_at'         => optional($this->message->sent_at)->toIso8601String(),
+                'id'              => (int) $this->message->id,
+                'conversation_id' => (int) $this->message->conversation_id,
+                'body'            => (string) $this->message->body,
+                'sender_type'     => (string) $this->message->sender_type,
+                'sender_id'       => (int) $this->message->sender_id,
+                'sent_at'         => $sentAt,
                 'read_at'         => optional($this->message->read_at)->toIso8601String(),
             ],
 
-            // معلومات المحادثة لو حبيت تحدّث قائمة المحادثات في الواجهة
+            // ما يتوقعه Flutter لتحديث ترتيب/المعاينة/العداد
             'conversation' => [
-                'id'                 => $this->conversation->id,
-                'last_message'       => $this->conversation->last_message,
-                'last_message_at'    => optional($this->conversation->last_message_at)->toIso8601String(),
+                'id'              => (int) $this->conversation->id,
+                'last_message'    => (string) ($this->conversation->last_message ?? ''),
+                'last_message_at' => optional($this->conversation->last_message_at)->toIso8601String(),
+
+                // العدادات الصحيحة للطرفين
                 'unread_for_teacher' => (int) $this->conversation->unread_for_teacher,
                 'unread_for_student' => (int) $this->conversation->unread_for_student,
+
+                // ✅ للتوافق مع كود Flutter (بعض الشاشات تقرأ unread_count)
+                // بما أنه Event واحد للطرفين: نخليه max حتى لا يرجع 0 بالخطأ في أي طرف
+                'unread_count' => (int) max(
+                    (int) $this->conversation->unread_for_teacher,
+                    (int) $this->conversation->unread_for_student
+                ),
             ],
         ];
     }

@@ -24,7 +24,12 @@ class ChatController extends Controller
             'academic_id'      => 'required|string',
             'class_section_id' => 'nullable|integer',
             'subject_id'       => 'nullable|integer',
+            'as'               => 'nullable|in:teacher,student',
         ]);
+
+        // ✅ تحديد المنظور (افتراضي: teacher لو لم يُرسل)
+        $as = $validated['as'] ?? 'teacher';
+        $forTeacher = $as === 'teacher';
 
         $teacher = Teacher::where('teacher_code', $validated['teacher_code'])->first();
         if (!$teacher) {
@@ -62,7 +67,8 @@ class ChatController extends Controller
 
         return response()->json([
             'success'      => true,
-            'conversation' => $this->formatConversation($conversation, forTeacher: true),
+            // ✅ الآن unread_count صحيح حسب الطرف
+            'conversation' => $this->formatConversation($conversation, $forTeacher),
         ]);
     }
 
@@ -84,7 +90,6 @@ class ChatController extends Controller
             ], 404);
         }
 
-        // ترتيب حسب آخر رسالة (الأحدث أولاً) مع احتياط updated_at
         $conversations = Conversation::where('teacher_id', $teacher->id)
             ->orderByDesc('last_message_at')
             ->orderByDesc('updated_at')
@@ -93,7 +98,7 @@ class ChatController extends Controller
         return response()->json([
             'success'       => true,
             'conversations' => $conversations->map(
-                fn (Conversation $c) => $this->formatConversation($c, forTeacher: true)
+                fn (Conversation $c) => $this->formatConversation($c, true)
             ),
         ]);
     }
@@ -124,14 +129,14 @@ class ChatController extends Controller
         return response()->json([
             'success'       => true,
             'conversations' => $conversations->map(
-                fn (Conversation $c) => $this->formatConversation($c, forTeacher: false)
+                fn (Conversation $c) => $this->formatConversation($c, false)
             ),
         ]);
     }
 
     /**
      * جلب رسائل محادثة معيّنة
-     * GET /api/chat/conversations/{conversation}/messages?as=teacher|student&teacher_code=..&academic_id=..
+     * GET /api/chat/conversations/{conversation}/messages?as=teacher|student
      */
     public function messages(Request $request, Conversation $conversation)
     {
@@ -150,7 +155,6 @@ class ChatController extends Controller
                 ], 403);
             }
 
-            // ✅ نعلّم رسائل الطالب للأستاذ كمقروءة
             Message::where('conversation_id', $conversation->id)
                 ->where('sender_type', 'student')
                 ->whereNull('read_at')
@@ -168,7 +172,6 @@ class ChatController extends Controller
                 ], 403);
             }
 
-            // ✅ نعلّم رسائل الأستاذ للطالب كمقروءة
             Message::where('conversation_id', $conversation->id)
                 ->where('sender_type', 'teacher')
                 ->whereNull('read_at')
@@ -224,7 +227,6 @@ class ChatController extends Controller
             $senderId = $student->id;
         }
 
-        // نستخدم Carbon مباشرة لضمان الدقة
         $now = Carbon::now();
 
         $message = Message::create([
@@ -235,37 +237,32 @@ class ChatController extends Controller
             'sent_at'         => $now,
         ]);
 
-        // تحديث بيانات آخر رسالة + عدد غير المقروء
         $conversation->last_message    = $validated['body'];
         $conversation->last_message_at = $now;
 
         if ($validated['sender_type'] === 'teacher') {
-            $conversation->unread_for_student = max(0, (int) $conversation->unread_for_student + 1);
+            $conversation->unread_for_student++;
         } else {
-            $conversation->unread_for_teacher = max(0, (int) $conversation->unread_for_teacher + 1);
+            $conversation->unread_for_teacher++;
         }
 
         $conversation->save();
-        $conversation->refresh(); // نتأكد أن الكائن محدث بالكامل
+        $conversation->refresh();
 
-        // بث الحدث لــ Laravel Reverb / Pusher
         broadcast(new MessageSent($message, $conversation))->toOthers();
 
         return response()->json([
             'success'      => true,
             'message'      => $this->formatMessage($message),
-            // ✅ نرجّع المحادثة المحدثة عشان تقدر من الفلاتر تحدث ترتيب القائمة فوراً
             'conversation' => $this->formatConversation(
                 $conversation,
-                forTeacher: $validated['sender_type'] === 'teacher'
+                $validated['sender_type'] === 'teacher'
             ),
         ]);
     }
 
     /**
-     * تنسيق بيانات المحادثة للـ API
-     * هنا نجيب الأستاذ والطالب يدويًا من قاعدة الداشبورد (الافتراضية)
-     * بدون الاعتماد على علاقات Conversation اللي على app_mysql
+     * تنسيق بيانات المحادثة
      */
     protected function formatConversation(Conversation $c, bool $forTeacher = true): array
     {
@@ -279,10 +276,9 @@ class ChatController extends Controller
             'class_section_id' => $c->class_section_id,
             'subject_id'       => $c->subject_id,
             'last_message'     => $c->last_message,
-            // ✅ ISO8601 (يشتغل ممتاز مع DateTime.parse في Flutter)
             'last_message_at'  => optional($c->last_message_at)->toIso8601String(),
 
-            // ✅ للواجهة: حسب من هو المستلم (أستاذ أو طالب)
+            // ✅ العدّاد الصحيح حسب الطرف
             'unread_count'     => $forTeacher
                 ? (int) $c->unread_for_teacher
                 : (int) $c->unread_for_student,
@@ -306,7 +302,7 @@ class ChatController extends Controller
     }
 
     /**
-     * تنسيق بيانات الرسالة للـ API
+     * تنسيق بيانات الرسالة
      */
     protected function formatMessage(Message $m): array
     {
@@ -316,7 +312,6 @@ class ChatController extends Controller
             'sender_type'     => $m->sender_type,
             'sender_id'       => $m->sender_id,
             'body'            => $m->body,
-            // ✅ يرجع بصيغة ISO8601 (Flutter ياخذها ويحوّلها ل HH:mm)
             'sent_at'         => optional($m->sent_at)->toIso8601String(),
             'read_at'         => optional($m->read_at)->toIso8601String(),
         ];

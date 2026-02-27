@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\Api\StudentAuthController;
 use App\Http\Controllers\Api\TeacherAuthController;
 use App\Http\Controllers\Api\LessonController;
@@ -29,8 +30,11 @@ Route::post('/teacher/auth', [TeacherAuthController::class, 'auth']);
 // ==================== دروس الأستاذ ====================
 Route::post('/teacher/lessons/save', [LessonController::class, 'save']);
 Route::get('/teacher/lessons', [LessonController::class, 'index']);
+
+// ملاحظة: أبقيناه كما هو الآن، لكن داخل LessonController سنوقف الاعتماد على Route Model Binding
 Route::get('/teacher/lessons/{lesson}', [LessonController::class, 'show']);
 Route::delete('/teacher/lessons/{lesson}', [LessonController::class, 'destroy']);
+
 Route::post('/teacher/lessons/bulk-delete', [LessonController::class, 'bulkDelete']);
 
 Route::post('/teacher/lessons/media', [LessonMediaController::class, 'store']);
@@ -44,6 +48,10 @@ Route::get('/teacher/class-modules/{module}/lessons', [ClassModuleController::cl
 
 // ==================== دروس الطالب ====================
 Route::get('/student/lessons', [StudentLessonController::class, 'index']);
+
+// ✅ (جديد) تفاصيل درس للطالب (للـ Viewer) — بدل الاعتماد على /teacher/lessons/{id}
+Route::get('/student/lessons/{lesson}', [StudentLessonController::class, 'show']);
+
 Route::post('/student/lessons/update-status', [StudentLessonController::class, 'updateStatus']);
 
 // ==================== دردشة الأستاذ / الطالب ====================

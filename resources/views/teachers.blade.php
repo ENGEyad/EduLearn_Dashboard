@@ -1,13 +1,17 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-3" id="teachersHeader">
+<div class="d-flex justify-content-between align-items-center mb-4" id="teachersHeader">
+  <div>
+    <h4 class="mb-0" style="font-family:'Outfit',sans-serif;font-weight:700;color:var(--title);">Teachers</h4>
+    <small style="color:var(--muted);">Manage all school teachers</small>
+  </div>
   <div class="d-flex gap-2">
     <button class="btn btn-outline-secondary" id="importTeachersBtn">
       <i class="bi bi-upload"></i> Bulk Import
     </button>
     <button class="btn btn-primary" id="openTeacherFormBtn">
-      <i class="bi bi-plus"></i> Add New Teacher
+      <i class="bi bi-plus-lg"></i> Add Teacher
     </button>
   </div>
 </div>
@@ -68,54 +72,27 @@
     <!-- البطاقة الجانبية للأستاذ -->
     <div class="col-lg-4">
       <div class="profile-shell" id="teacherProfile">
-        <div class="profile-header mb-3">
-          <div class="avatar-circle" id="teacherAvatar">TC</div>
-          <div>
-            <h6 class="profile-name mb-0" id="teacherName">Select a teacher</h6>
-            <div class="profile-meta small text-muted" id="teacherId">Teacher Code: --</div>
+        <div class="profile-header">
+          <div class="avatar-circle" style="background:linear-gradient(135deg,#f59e0b,#b45309);" id="teacherAvatar">TC</div>
+          <div style="flex:1;">
+            <div class="profile-name" id="teacherName">Select a teacher</div>
+            <div style="font-size:.75rem; color:var(--muted); margin-top:.1rem;" id="teacherId">Teacher Code: --</div>
           </div>
         </div>
 
-        <div class="mb-2">
-          <strong>Date of Birth:</strong>
-          <div class="text-muted small" id="spTcBirthdate">--</div>
-        </div>
+        <div class="section-divider">Personal Info</div>
+        <div class="kv-row"><span class="kv-label">Date of Birth</span><span class="kv-value" id="spTcBirthdate">--</span></div>
+        <div class="kv-row"><span class="kv-label">Email</span><span class="kv-value" id="spTcEmail">--</span></div>
+        <div class="kv-row"><span class="kv-label">Address</span><span class="kv-value" id="spTcAddress">--</span></div>
+        <div class="kv-row"><span class="kv-label">Phone</span><span class="kv-value" id="spTcPhone">--</span></div>
 
-        <div class="mb-2">
-          <strong>Email:</strong>
-          <div class="text-muted small" id="spTcEmail">--</div>
-        </div>
+        <div class="section-divider">Assignments</div>
+        <div class="kv-row"><span class="kv-label">Classes</span><span class="kv-value" id="spTcClassSection">--</span></div>
+        <div class="kv-row"><span class="kv-label">Subjects</span><span class="kv-value" id="spTcSubjects">--</span></div>
 
-        <div class="mb-2">
-          <strong>Address:</strong>
-          <div class="text-muted small" id="spTcAddress">--</div>
-        </div>
-
-        <hr class="my-2" />
-
-        <div class="mb-2">
-          <strong>Phone:</strong>
-          <div class="text-muted small" id="spTcPhone">--</div>
-        </div>
-        <div class="mb-2">
-          <strong>Classes / Sections:</strong>
-          <div class="text-muted small" id="spTcClassSection">--</div>
-        </div>
-        <div class="mb-2">
-          <strong>Subjects:</strong>
-          <div class="text-muted small" id="spTcSubjects">--</div>
-        </div>
-
-        <hr class="my-2" />
-
-        <div class="d-flex justify-content-between mb-1">
-          <span class="small text-muted">Performance Average</span>
-          <span id="spTcPerformance" class="fw-semibold">--</span>
-        </div>
-        <div class="d-flex justify-content-between">
-          <span class="small text-muted">Attendance Rate</span>
-          <span id="spTcAttendance" class="fw-semibold">--</span>
-        </div>
+        <div class="section-divider">Performance</div>
+        <div class="kv-row"><span class="kv-label">Performance Avg</span><span class="kv-value" id="spTcPerformance">--</span></div>
+        <div class="kv-row"><span class="kv-label">Attendance Rate</span><span class="kv-value" id="spTcAttendance">--</span></div>
       </div>
     </div>
   </div>
@@ -125,18 +102,18 @@
 <div id="teacherFormView" class="card-panel" style="display:none;">
   <input type="hidden" id="tcDbId" value="">
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h5 class="mb-1" id="teacherFormTitle">Add New Teacher</h5>
-      <small class="text-muted">Enter teacher personal and contact details</small>
+      <h5 class="mb-1" style="font-family:'Outfit',sans-serif;font-weight:700;" id="teacherFormTitle">Add New Teacher</h5>
+      <small style="color:var(--muted);">Enter teacher personal and contact details</small>
     </div>
     <button class="btn btn-outline-secondary btn-sm" id="backToTeachersBtn">
-      <i class="bi bi-arrow-left"></i> Back to Teachers
+      <i class="bi bi-arrow-left"></i> Back
     </button>
   </div>
 
   {{-- Personal Information --}}
-  <h6 class="mb-2">Personal Information</h6>
+  <div class="section-divider">Personal Information</div>
   <div class="row g-3 mb-3">
     <div class="col-md-4">
       <label class="form-label">Full Name</label>
@@ -156,7 +133,7 @@
   </div>
 
   {{-- Duty & Attendance --}}
-  <h6 class="mb-2 mt-4">Duty & Attendance</h6>
+  <div class="section-divider mt-4">Duty &amp; Contact</div>
   <div class="row g-3 mb-3">
     <div class="col-md-3">
       <label class="form-label">Shift</label>
@@ -177,7 +154,7 @@
   </div>
 
   {{-- Photo + Assigned classes (read only) --}}
-  <h6 class="mb-2 mt-4">Photo & Assigned Classes</h6>
+  <div class="section-divider mt-4">Photo &amp; Assigned Classes</div>
   <div class="row g-3 mb-3">
     <div class="col-md-4">
       <label class="form-label">Teacher Photo</label>
@@ -196,7 +173,7 @@
   </div>
 
   {{-- Social & Address --}}
-  <h6 class="mb-2 mt-4">Social & Address</h6>
+  <div class="section-divider mt-4">Address</div>
   <div class="row g-3 mb-3">
     <div class="col-md-3">
       <label class="form-label">District</label>

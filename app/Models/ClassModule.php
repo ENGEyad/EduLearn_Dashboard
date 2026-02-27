@@ -6,6 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class ClassModule extends Model
 {
+    /**
+     * ============================================================
+     * ✅ هذا هو "الموديول الحقيقي" (Container)
+     * ============================================================
+     *
+     * يحتوي Lessons متعددة، وكل Lesson يحتوي Blocks.
+     */
     protected $connection = 'app_mysql';
 
     protected $fillable = [
@@ -17,12 +24,21 @@ class ClassModule extends Model
         'position',
     ];
 
+    /**
+     * ============================================================
+     * ✅ الدروس داخل هذا الـ ClassModule
+     * ============================================================
+     */
     public function lessons()
     {
         return $this->hasMany(Lesson::class, 'class_module_id');
     }
 
-    // اختياري لو تحب ترجع للأستاذ / الإسناد
+    /**
+     * ============================================================
+     * ✅ علاقات مرجعية اختيارية
+     * ============================================================
+     */
     public function teacher()
     {
         return $this->belongsTo(Teacher::class, 'teacher_id');
@@ -33,5 +49,13 @@ class ClassModule extends Model
         return $this->belongsTo(TeacherClassSubject::class, 'assignment_id');
     }
 
-    
+    /**
+     * ============================================================
+     * ✅ Scope مفيد للفرز
+     * ============================================================
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('position');
+    }
 }

@@ -1,16 +1,18 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="mb-0" style="font-family:'Outfit',sans-serif;font-weight:700;color:var(--title);">Students</h4>
+    <small style="color:var(--muted);">Manage all enrolled students</small>
+  </div>
   <div class="d-flex gap-2">
     <button class="btn btn-outline-secondary" id="importExcelBtn">
-      <i class="bi bi-upload"></i> Import from CSV / Excel
+      <i class="bi bi-upload"></i> Import CSV
     </button>
     <input type="file" id="excelInput" class="d-none" accept=".csv,.xls,.xlsx" />
-  </div>
-  <div>
     <button class="btn btn-primary" id="openStudentFormBtn">
-      <i class="bi bi-plus"></i> Add New Student
+      <i class="bi bi-plus-lg"></i> Add Student
     </button>
   </div>
 </div>
@@ -64,56 +66,27 @@
     <!-- Side card -->
     <div class="col-lg-4">
       <div class="profile-shell" id="studentProfile">
-        <div class="profile-header mb-3">
+        <div class="profile-header">
           <div class="avatar-circle" id="studentAvatar">ST</div>
-          <div>
-            <h6 class="profile-name mb-0" id="studentName">Select a student</h6>
-            <div class="profile-meta small text-muted" id="studentId">Academic ID: --</div>
+          <div style="flex:1;">
+            <div class="profile-name" id="studentName">Select a student</div>
+            <div style="font-size:.75rem; color:var(--muted); margin-top:.1rem;" id="studentId">Academic ID: --</div>
           </div>
         </div>
 
-        <div class="mb-2">
-          <strong>Date of Birth:</strong>
-          <div id="studentDob" class="text-muted small">--</div>
-        </div>
+        <div class="section-divider">Personal Info</div>
+        <div class="kv-row"><span class="kv-label">Date of Birth</span><span class="kv-value" id="studentDob">--</span></div>
+        <div class="kv-row"><span class="kv-label">Email</span><span class="kv-value" id="studentEmail">--</span></div>
+        <div class="kv-row"><span class="kv-label">Address</span><span class="kv-value" id="studentAddress">--</span></div>
 
-        <div class="mb-2">
-          <strong>Email:</strong>
-          <div id="studentEmail" class="text-muted small">--</div>
-        </div>
+        <div class="section-divider">Guardian</div>
+        <div class="kv-row"><span class="kv-label">Name</span><span class="kv-value" id="studentGuardian">--</span></div>
+        <div class="kv-row"><span class="kv-label">Phone</span><span class="kv-value" id="studentGuardianPhone">--</span></div>
 
-        <div class="mb-2">
-          <strong>Address:</strong>
-          <div id="studentAddress" class="text-muted small">--</div>
-        </div>
-
-        <hr class="my-2" />
-
-        <div class="mb-2">
-          <strong>Guardian:</strong>
-          <div id="studentGuardian" class="text-muted small">--</div>
-        </div>
-
-        <div class="mb-2">
-          <strong>Guardian Phone:</strong>
-          <div id="studentGuardianPhone" class="text-muted small">--</div>
-        </div>
-
-        <div class="mb-2">
-          <strong>Grade / Section:</strong>
-          <div id="studentGradeSection" class="text-muted small">--</div>
-        </div>
-
-        <hr class="my-2" />
-
-        <div class="d-flex justify-content-between mb-1">
-          <span class="small text-muted">Performance Average</span>
-          <span id="studentPerformance" class="fw-semibold">--</span>
-        </div>
-        <div class="d-flex justify-content-between">
-          <span class="small text-muted">Attendance Rate</span>
-          <span id="studentAttendance" class="fw-semibold">--</span>
-        </div>
+        <div class="section-divider">Academic</div>
+        <div class="kv-row"><span class="kv-label">Grade / Section</span><span class="kv-value" id="studentGradeSection">--</span></div>
+        <div class="kv-row"><span class="kv-label">Performance</span><span class="kv-value" id="studentPerformance">--</span></div>
+        <div class="kv-row"><span class="kv-label">Attendance Rate</span><span class="kv-value" id="studentAttendance">--</span></div>
       </div>
     </div>
   </div>
@@ -121,13 +94,13 @@
 
 <!-- View 2: Form -->
 <div id="studentFormView" class="card-panel" style="display:none;">
-  <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h5 class="mb-1" id="formTitle">Add New Student</h5>
-      <small class="text-muted">Fill the form to register a new student</small>
+      <h5 class="mb-1" style="font-family:'Outfit',sans-serif;font-weight:700;" id="formTitle">Add New Student</h5>
+      <small style="color:var(--muted);">Fill the form to register a new student</small>
     </div>
     <button class="btn btn-outline-secondary btn-sm" id="backToStudentsBtn">
-      <i class="bi bi-arrow-left"></i> Back to Students
+      <i class="bi bi-arrow-left"></i> Back
     </button>
   </div>
 
@@ -190,7 +163,7 @@
     </div>
   </div>
 
-  <h6 class="mb-2 mt-4">Address</h6>
+  <div class="section-divider mt-4">Address</div>
   <div class="row g-3 mb-3">
     <div class="col-md-4">
       <label class="form-label">Governorate</label>
@@ -206,7 +179,7 @@
     </div>
   </div>
 
-  <h6 class="mb-2 mt-4">Guardian Information</h6>
+  <div class="section-divider mt-4">Guardian Information</div>
   <div class="row g-3 mb-3">
     <div class="col-md-4">
       <label class="form-label">Guardian Name</label>
@@ -246,16 +219,20 @@
 <div class="modal fade" id="deleteStudentModal" tabindex="-1" aria-labelledby="deleteStudentLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="deleteStudentLabel">Confirm Delete</h5>
+      <div class="modal-header" style="background:linear-gradient(135deg,#fef2f2,#fff);">
+        <h5 class="modal-title" id="deleteStudentLabel" style="color:#b91c1c;">
+          <i class="bi bi-trash3-fill me-2"></i>Delete Student
+        </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        Are you sure you want to delete this student?
+      <div class="modal-body" style="color:var(--text);">
+        Are you sure you want to <strong>permanently delete</strong> this student? This action cannot be undone.
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger" id="confirmDeleteStudentBtn">Delete</button>
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteStudentBtn">
+          <i class="bi bi-trash3"></i> Delete
+        </button>
       </div>
     </div>
   </div>
